@@ -23,23 +23,31 @@ cpp_infer/
 - make_input_bin.py  生成推理输入二进制文件
 
 ## 编译
-
+```bash
 conda activate learn_zjh
 cd /home/heygears/zjh/learn/diffusion-net/export/cpp_infer
-rm -rf build; mkdir build; cd build
-cmake ..; make
+rm -rf build
+mkdir build
+cd build
+cmake ..
+make
+```
 
 依赖：
+```bash
 - onnxruntime 头文件：onnxruntime/include
 - onnxruntime 库：onnxruntime/libonnxruntime.so
+```
 
 ## 生成输入文件
-
+```
 conda activate learn_zjh
 cd /home/heygears/zjh/learn/diffusion-net
 python export/make_input_bin.py --input_features xyz_normal_curv --output experiments/STMLine/data/exported/input.bin
+```
 
 输入二进制格式（小端）：
+```txt
   int64 V, K, NX, NY, C_in
   float[V*C_in]  features
   float[V]       mass
@@ -47,6 +55,7 @@ python export/make_input_bin.py --input_features xyz_normal_curv --output experi
   float[V*K]     evecs
   int64[NX] gx_rows; int64[NX] gx_cols; float[NX] gx_vals
   int64[NY] gy_rows; int64[NY] gy_cols; float[NY] gy_vals
+```
 
 ## 运行推理
 ```bash
