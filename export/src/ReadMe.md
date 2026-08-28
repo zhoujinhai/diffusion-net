@@ -49,19 +49,28 @@ python export/make_input_bin.py --input_features xyz_normal_curv --output experi
   int64[NY] gy_rows; int64[NY] gy_cols; float[NY] gy_vals
 
 ## 运行推理
-
+```bash
 cd /home/heygears/zjh/learn/diffusion-net/export/cpp_infer/build
 LD_LIBRARY_PATH=/home/heygears/anaconda3/envs/learn_zjh/lib/python3.10/site-packages/onnxruntime/capi \
   ./diffusionnet_infer <model.onnx> <input.bin> <threads>
+```
 
 例如：
+```bash
   ./diffusionnet_infer \
     /home/heygears/zjh/learn/diffusion-net/experiments/STMLine/data/exported/stm_seg_xyz_normal_curv_4x128_custom.onnx \
-    /home/heygears/zjh/learn/diffusion-net/experiments/STMLine/data/exported/input.bin \
-    16
+    /home/heygears/zjh/learn/diffusion-net/experiments/STMLine/data/exported/input.bin  16
+```
 
 输出：打印推理耗时、输出 shape、预测标签计数，并写 pred_labels.txt（每顶点一行标签）。
 
 ## 说明
 
-- 自定义算子：main.cpp 里
+- 自定义算子：main.cpp 里 SparseMMGatherOp 实现了 gradX @ x（COO 三元组 -> 排序 + OpenMP 并行按行累加），替换 onnxruntime 慢的通用 ScatterElements，这是加速 4.2x 的关键。
+- 输入文件由 make_input_bin.py 从真实网格算子生成（复用 op_cache / dataset）。
+## geometry_ops C++ 验证 (2026-08-27)
+
+geometry_ops.h/.cpp 重新实现了 compute_operators()，已验证与 Python get_operators() 一致：
+- normalize_positions / vertex_areas / cotan_laplacian / build_tangent_frames / build_grad_ops 全部通过（float 精度级）
+- generalized_eigs 修复：Spectra 返回降序特征值，已改为升序（对齐 scipy eigsh）
+- gradX/gradY 在 f64 输入下与算法完全一致（1e-13）；与生产 float32 参考的 ~1e-4 相对差为 float32/float64 输入精度差异
