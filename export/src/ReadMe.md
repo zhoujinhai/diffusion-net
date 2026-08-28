@@ -12,15 +12,18 @@
 约 4.2 倍加速，预测结果与 Python 完全一致。
 
 ## 文件结构
-
-cpp_infer/
+```
+src/
   CMakeLists.txt   # 链接 onnxruntime 1.23.2 库
   main.cpp         # C++ 推理主程序（含 SparseMMGather OrtCustomOp）
   build/           # 编译输出（diffusionnet_infer）
+```
 
 配套 Python 脚本（在 export/ 目录）：
+```txt
 - export_onnx_sparse.py --use_custom_op  导出含自定义算子的 ONNX
 - make_input_bin.py  生成推理输入二进制文件
+```
 
 ## 编译
 ```bash
